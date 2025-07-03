@@ -1,10 +1,9 @@
 """
 CSP Scheduling Project - Main Assignment Script
-University of North Dakota – CSCI 384 AI Course | Spring 2025
+University of North Dakota - CSCI 384 AI Course | Spring 2025
 
 Title: Constraint Satisfaction Problem (CSP) Scheduling Solver
 Total Points: 100 (+20 bonus points)
-Difficulty Level: 9/10 ⭐⭐⭐⭐⭐⭐⭐⭐⭐
 
 This is the main assignment script. You must complete each step where "YOUR CODE HERE" is indicated.
 Use the provided helper modules (utils/ and src/csp_solver.py) to assist you.
