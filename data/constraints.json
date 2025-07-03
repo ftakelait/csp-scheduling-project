@@ -1,0 +1,134 @@
+{
+  "constraint_types": {
+    "hard_constraints": {
+      "no_resource_overlap": {
+        "description": "A resource cannot be assigned to multiple tasks at the same time",
+        "type": "binary",
+        "variables": ["resource", "time_slot"],
+        "check_function": "check_resource_availability"
+      },
+      "task_dependencies": {
+        "description": "A task cannot start before its dependencies are completed",
+        "type": "unary",
+        "variables": ["task", "start_time"],
+        "check_function": "check_task_dependencies"
+      },
+      "resource_skills": {
+        "description": "A resource must have the required skills for the assigned task",
+        "type": "binary",
+        "variables": ["resource", "task"],
+        "check_function": "check_resource_skills"
+      },
+      "resource_availability": {
+        "description": "A resource can only be assigned during their available time slots",
+        "type": "binary",
+        "variables": ["resource", "time_slot"],
+        "check_function": "check_resource_availability"
+      },
+      "max_hours_per_day": {
+        "description": "A resource cannot work more than their maximum hours per day",
+        "type": "unary",
+        "variables": ["resource", "day"],
+        "check_function": "check_max_hours_per_day"
+      }
+    },
+    "soft_constraints": {
+      "preferred_resources": {
+        "description": "Prefer assigning tasks to their preferred resources",
+        "type": "binary",
+        "variables": ["task", "resource"],
+        "check_function": "check_preferred_resources",
+        "weight": 1.0
+      },
+      "task_priority": {
+        "description": "Higher priority tasks should be scheduled earlier",
+        "type": "unary",
+        "variables": ["task", "start_time"],
+        "check_function": "check_task_priority",
+        "weight": 0.8
+      },
+      "balanced_workload": {
+        "description": "Distribute workload evenly among resources",
+        "type": "global",
+        "variables": ["all_resources"],
+        "check_function": "check_balanced_workload",
+        "weight": 0.6
+      }
+    }
+  },
+  "constraint_functions": {
+    "check_resource_availability": {
+      "description": "Check if a resource is available at a specific time slot",
+      "parameters": ["resource_id", "day", "hour"],
+      "return_type": "boolean"
+    },
+    "check_task_dependencies": {
+      "description": "Check if all dependencies of a task are completed before its start time",
+      "parameters": ["task_id", "start_time", "schedule"],
+      "return_type": "boolean"
+    },
+    "check_resource_skills": {
+      "description": "Check if a resource has the required skills for a task",
+      "parameters": ["resource_id", "task_id"],
+      "return_type": "boolean"
+    },
+    "check_max_hours_per_day": {
+      "description": "Check if a resource exceeds their maximum hours per day",
+      "parameters": ["resource_id", "day", "schedule"],
+      "return_type": "boolean"
+    },
+    "check_preferred_resources": {
+      "description": "Check if a task is assigned to one of its preferred resources",
+      "parameters": ["task_id", "resource_id"],
+      "return_type": "boolean"
+    },
+    "check_task_priority": {
+      "description": "Check if higher priority tasks are scheduled earlier",
+      "parameters": ["task_id", "start_time", "schedule"],
+      "return_type": "float"
+    },
+    "check_balanced_workload": {
+      "description": "Calculate workload balance among all resources",
+      "parameters": ["schedule"],
+      "return_type": "float"
+    }
+  },
+  "heuristics": {
+    "variable_ordering": {
+      "mrv": {
+        "name": "Minimum Remaining Values",
+        "description": "Choose the variable with the fewest legal values",
+        "implementation": "select_mrv_variable"
+      },
+      "degree": {
+        "name": "Degree Heuristic",
+        "description": "Choose the variable with the most constraints on remaining variables",
+        "implementation": "select_degree_variable"
+      },
+      "combined": {
+        "name": "Combined MRV + Degree",
+        "description": "Use MRV, breaking ties with degree heuristic",
+        "implementation": "select_combined_variable"
+      }
+    },
+    "value_ordering": {
+      "lcv": {
+        "name": "Least Constraining Value",
+        "description": "Choose the value that rules out the fewest values in remaining variables",
+        "implementation": "select_lcv_value"
+      },
+      "random": {
+        "name": "Random Value Selection",
+        "description": "Choose values randomly from the domain",
+        "implementation": "select_random_value"
+      }
+    }
+  },
+  "optimization_parameters": {
+    "timeout": 300,
+    "max_iterations": 10000,
+    "backtrack_limit": 1000,
+    "consistency_check": true,
+    "heuristic_enabled": true
+  }
+} 
