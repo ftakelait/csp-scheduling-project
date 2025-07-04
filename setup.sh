@@ -59,10 +59,16 @@ if [ ! -f "Dockerfile" ] || [ ! -f "docker-compose.yml" ]; then
     exit 1
 fi
 
+# Clean up any existing containers and images
+echo "Cleaning up existing containers and images..."
+docker-compose down
+docker system prune -f
+
 # Build the Docker image
 echo "Building Docker image (this may take a few minutes)..."
 echo "The image will clone the course repository: https://github.com/ftakelait/csp-scheduling-project/"
-docker-compose build
+echo "Using --no-cache to ensure latest version..."
+docker-compose build --no-cache
 
 if [ $? -eq 0 ]; then
     echo "✅ Docker image built successfully"
@@ -78,17 +84,20 @@ echo "==============================================="
 echo ""
 echo "The Docker environment is ready with the course repository!"
 echo ""
-echo "To start the development environment:"
-echo "  docker-compose up ai-course-dev"
+echo "To start the development environment (recommended):"
+echo "  docker run -it --rm \\"
+echo "    -v ~/ai-course-work:/workspace/student_work \\"
+echo "    -v ~/ai-course-data:/workspace/data \\"
+echo "    -v ~/ai-course-output:/workspace/output \\"
+echo "    -v ~/ai-course-projects:/workspace/projects \\"
+echo "    mycourse-ai-course-dev"
 echo ""
-echo "To start Jupyter Notebook:"
+echo "Alternative methods:"
+echo "  docker-compose up ai-course-dev"
 echo "  docker-compose up jupyter"
 echo ""
 echo "To run the CSP assignment:"
-echo "  docker-compose run --rm ai-course-dev run_assignment csp-scheduling-project"
-echo ""
-echo "To list all available assignments:"
-echo "  docker-compose run --rm ai-course-dev list_assignments"
+echo "  docker run --rm mycourse-ai-course-dev run_assignment csp-scheduling-project"
 echo ""
 echo "Your work will be saved in:"
 echo "  ~/ai-course-work/ (assignment work)"
