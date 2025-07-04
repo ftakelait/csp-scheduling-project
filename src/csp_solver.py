@@ -1,572 +1,390 @@
 """
-CSP Solver for Scheduling Problems
-Implements backtracking search with various heuristics and constraint propagation
+CSP Solver Implementation
+Core Constraint Satisfaction Problem solver for scheduling
+
+Students need to implement the core CSP solving functionality.
 """
 
 import time
-from typing import Dict, List, Any, Set, Tuple, Optional, Callable
-from collections import defaultdict
 import random
-
-
-class CSPVariable:
-    """Represents a variable in the CSP"""
-    
-    def __init__(self, name: str, domain: List[Any]):
-        self.name = name
-        self.domain = domain.copy()
-        self.assigned_value = None
-        self.constraints = []
-    
-    def assign(self, value: Any) -> None:
-        """Assign a value to this variable"""
-        self.assigned_value = value
-    
-    def unassign(self) -> None:
-        """Remove the assignment from this variable"""
-        self.assigned_value = None
-    
-    def is_assigned(self) -> bool:
-        """Check if this variable has been assigned"""
-        return self.assigned_value is not None
-    
-    def get_remaining_values(self) -> List[Any]:
-        """Get the remaining unassigned values in the domain"""
-        if self.is_assigned():
-            return []
-        return self.domain.copy()
-
-
-class CSPConstraint:
-    """Represents a constraint in the CSP"""
-    
-    def __init__(self, variables: List[str], constraint_func: Callable):
-        self.variables = variables
-        self.constraint_func = constraint_func
-    
-    def check(self, assignment: Dict[str, Any]) -> bool:
-        """Check if the constraint is satisfied given the current assignment"""
-        # Only check if all variables in this constraint are assigned
-        if not all(var in assignment for var in self.variables):
-            return True
-        
-        # Extract values for the variables in this constraint
-        values = [assignment[var] for var in self.variables]
-        return self.constraint_func(*values)
-
-
-class CSPSolver:
-    """Main CSP solver class"""
-    
-    def __init__(self, variables: Dict[str, List[Any]], constraints: List[CSPConstraint]):
-        self.variables = {name: CSPVariable(name, domain) for name, domain in variables.items()}
-        self.constraints = constraints
-        self.assignment = {}
-        self.backtrack_count = 0
-        self.start_time = None
-        
-        # Add constraints to variables
-        for constraint in constraints:
-            for var_name in constraint.variables:
-                if var_name in self.variables:
-                    self.variables[var_name].constraints.append(constraint)
-    
-    def solve(self, heuristic: str = "mrv", use_arc_consistency: bool = True, 
-              timeout: int = 300) -> Optional[Dict[str, Any]]:
-        """
-        Solve the CSP using backtracking search
-        
-        Args:
-            heuristic: Variable ordering heuristic ("mrv", "degree", "combined")
-            use_arc_consistency: Whether to use arc consistency
-            timeout: Maximum time to spend solving (seconds)
-            
-        Returns:
-            Solution assignment or None if no solution found
-        """
-        self.start_time = time.time()
-        self.backtrack_count = 0
-        
-        # Apply arc consistency if requested
-        if use_arc_consistency:
-            if not self.arc_consistency():
-                return None
-        
-        # Start backtracking search
-        solution = self.backtrack_search(heuristic, timeout)
-        
-        if solution:
-            print(f"Solution found in {time.time() - self.start_time:.2f} seconds")
-            print(f"Backtrack count: {self.backtrack_count}")
-        else:
-            print(f"No solution found after {time.time() - self.start_time:.2f} seconds")
-            print(f"Backtrack count: {self.backtrack_count}")
-        
-        return solution
-    
-    def backtrack_search(self, heuristic: str, timeout: int) -> Optional[Dict[str, Any]]:
-        """
-        Recursive backtracking search
-        
-        Args:
-            heuristic: Variable ordering heuristic
-            timeout: Maximum time to spend solving
-            
-        Returns:
-            Solution assignment or None
-        """
-        # Check timeout
-        if time.time() - self.start_time > timeout:
-            return None
-        
-        # Check if all variables are assigned
-        if len(self.assignment) == len(self.variables):
-            return self.assignment.copy()
-        
-        # Select next variable using heuristic
-        var_name = self.select_variable(heuristic)
-        if var_name is None:
-            return None
-        
-        variable = self.variables[var_name]
-        
-        # Try each value in the variable's domain
-        for value in variable.get_remaining_values():
-            # Check if this assignment is consistent
-            if self.is_consistent(var_name, value):
-                # Make the assignment
-                variable.assign(value)
-                self.assignment[var_name] = value
-                
-                # Recursively try to assign the remaining variables
-                result = self.backtrack_search(heuristic, timeout)
-                if result is not None:
-                    return result
-                
-                # Backtrack
-                variable.unassign()
-                del self.assignment[var_name]
-                self.backtrack_count += 1
-        
-        return None
-    
-    def select_variable(self, heuristic: str) -> Optional[str]:
-        """
-        Select the next variable to assign using the specified heuristic
-        
-        Args:
-            heuristic: Variable ordering heuristic
-            
-        Returns:
-            Name of the selected variable or None if no unassigned variables
-        """
-        unassigned = [name for name, var in self.variables.items() if not var.is_assigned()]
-        
-        if not unassigned:
-            return None
-        
-        if heuristic == "mrv":
-            return self.select_mrv_variable(unassigned)
-        elif heuristic == "degree":
-            return self.select_degree_variable(unassigned)
-        elif heuristic == "combined":
-            return self.select_combined_variable(unassigned)
-        else:
-            return random.choice(unassigned)
-    
-    def select_mrv_variable(self, unassigned: List[str]) -> str:
-        """
-        Select variable with Minimum Remaining Values
-        
-        Args:
-            unassigned: List of unassigned variable names
-            
-        Returns:
-            Variable name with fewest remaining values
-        """
-        min_values = float('inf')
-        selected_var = unassigned[0]
-        
-        for var_name in unassigned:
-            variable = self.variables[var_name]
-            remaining_values = len(variable.get_remaining_values())
-            
-            if remaining_values < min_values:
-                min_values = remaining_values
-                selected_var = var_name
-        
-        return selected_var
-    
-    def select_degree_variable(self, unassigned: List[str]) -> str:
-        """
-        Select variable with highest degree (most constraints on remaining variables)
-        
-        Args:
-            unassigned: List of unassigned variable names
-            
-        Returns:
-            Variable name with highest degree
-        """
-        max_degree = -1
-        selected_var = unassigned[0]
-        
-        for var_name in unassigned:
-            variable = self.variables[var_name]
-            degree = 0
-            
-            # Count constraints that involve other unassigned variables
-            for constraint in variable.constraints:
-                for other_var in constraint.variables:
-                    if other_var != var_name and other_var in unassigned:
-                        degree += 1
-            
-            if degree > max_degree:
-                max_degree = degree
-                selected_var = var_name
-        
-        return selected_var
-    
-    def select_combined_variable(self, unassigned: List[str]) -> str:
-        """
-        Select variable using MRV, breaking ties with degree heuristic
-        
-        Args:
-            unassigned: List of unassigned variable names
-            
-        Returns:
-            Variable name selected by combined heuristic
-        """
-        # First, find variables with minimum remaining values
-        min_values = float('inf')
-        mrv_vars = []
-        
-        for var_name in unassigned:
-            variable = self.variables[var_name]
-            remaining_values = len(variable.get_remaining_values())
-            
-            if remaining_values < min_values:
-                min_values = remaining_values
-                mrv_vars = [var_name]
-            elif remaining_values == min_values:
-                mrv_vars.append(var_name)
-        
-        # If only one variable has minimum remaining values, return it
-        if len(mrv_vars) == 1:
-            return mrv_vars[0]
-        
-        # Otherwise, break ties using degree heuristic
-        max_degree = -1
-        selected_var = mrv_vars[0]
-        
-        for var_name in mrv_vars:
-            variable = self.variables[var_name]
-            degree = 0
-            
-            for constraint in variable.constraints:
-                for other_var in constraint.variables:
-                    if other_var != var_name and other_var in unassigned:
-                        degree += 1
-            
-            if degree > max_degree:
-                max_degree = degree
-                selected_var = var_name
-        
-        return selected_var
-    
-    def is_consistent(self, var_name: str, value: Any) -> bool:
-        """
-        Check if assigning the given value to the variable is consistent
-        
-        Args:
-            var_name: Name of the variable
-            value: Value to assign
-            
-        Returns:
-            True if assignment is consistent, False otherwise
-        """
-        # Create a temporary assignment including the new value
-        temp_assignment = self.assignment.copy()
-        temp_assignment[var_name] = value
-        
-        # Check all constraints
-        for constraint in self.constraints:
-            if not constraint.check(temp_assignment):
-                return False
-        
-        return True
-    
-    def arc_consistency(self) -> bool:
-        """
-        Apply arc consistency to reduce domains
-        
-        Returns:
-            True if arc consistency was successful, False if domain became empty
-        """
-        # Create a queue of all arcs (variable-constraint pairs)
-        queue = []
-        for var_name, variable in self.variables.items():
-            for constraint in variable.constraints:
-                for other_var in constraint.variables:
-                    if other_var != var_name:
-                        queue.append((var_name, other_var, constraint))
-        
-        # Process the queue
-        while queue:
-            var1, var2, constraint = queue.pop(0)
-            
-            if self.revise_domain(var1, var2, constraint):
-                # If domain of var1 was revised, add all arcs involving var1 back to queue
-                if len(self.variables[var1].domain) == 0:
-                    return False
-                
-                for other_constraint in self.variables[var1].constraints:
-                    for other_var in other_constraint.variables:
-                        if other_var != var1 and other_var != var2:
-                            queue.append((other_var, var1, other_constraint))
-        
-        return True
-    
-    def revise_domain(self, var1: str, var2: str, constraint: CSPConstraint) -> bool:
-        """
-        Revise the domain of var1 based on constraint with var2
-        
-        Args:
-            var1: First variable
-            var2: Second variable
-            constraint: Constraint between the variables
-            
-        Returns:
-            True if domain was revised, False otherwise
-        """
-        revised = False
-        domain1 = self.variables[var1].domain.copy()
-        
-        for value1 in domain1:
-            # Check if there's any value in var2's domain that satisfies the constraint
-            has_support = False
-            
-            for value2 in self.variables[var2].domain:
-                # Create temporary assignment
-                temp_assignment = {var1: value1, var2: value2}
-                
-                # Check if constraint is satisfied
-                if constraint.check(temp_assignment):
-                    has_support = True
-                    break
-            
-            # If no support found, remove value1 from domain
-            if not has_support:
-                self.variables[var1].domain.remove(value1)
-                revised = True
-        
-        return revised
-    
-    def get_solution_quality(self, solution: Dict[str, Any]) -> float:
-        """
-        Calculate the quality score of a solution
-        
-        Args:
-            solution: The solution assignment
-            
-        Returns:
-            Quality score (higher is better)
-        """
-        if not solution:
-            return 0.0
-        
-        # This is a placeholder - actual quality calculation would depend on the problem
-        # For scheduling problems, you might consider:
-        # - Number of constraint violations
-        # - Resource utilization balance
-        # - Task completion time
-        # - Priority satisfaction
-        
-        return 1.0  # Placeholder score
-
+from typing import Dict, List, Any, Optional, Tuple, Set
+from collections import defaultdict
 
 class SchedulingCSP:
-    """Specialized CSP for scheduling problems"""
+    """
+    Constraint Satisfaction Problem solver for scheduling tasks to resources
+    """
     
     def __init__(self, tasks: List[Dict], resources: List[Dict], 
-                 time_slots: Dict[str, Any], constraints: Dict[str, Any]):
+                 time_slots: Dict, constraints: Dict):
+        """
+        Initialize the CSP solver
+        
+        Args:
+            tasks: List of task dictionaries
+            resources: List of resource dictionaries
+            time_slots: Dictionary with time slot information
+            constraints: Dictionary with hard and soft constraints
+        """
         self.tasks = tasks
         self.resources = resources
         self.time_slots = time_slots
         self.constraints = constraints
-        self.solver = None
         
-    def create_csp(self) -> CSPSolver:
+        # CSP components to be initialized
+        self.variables = []
+        self.domains = {}
+        self.constraint_graph = {}
+        
+        # Initialize the CSP
+        self._initialize_csp()
+    
+    def _initialize_csp(self):
         """
-        Create a CSP instance for the scheduling problem
-        
-        Returns:
-            Configured CSP solver
+        Initialize the CSP variables, domains, and constraints
         """
         # Create variables (one for each task)
-        variables = {}
+        self.variables = [task['id'] for task in self.tasks]
+        
+        # Create domains (possible assignments for each task)
+        self.domains = {}
         for task in self.tasks:
             task_id = task['id']
-            # Domain: all possible (resource, day, hour) combinations
-            domain = self.create_domain_for_task(task)
-            variables[task_id] = domain
+            domain = []
+            
+            # Generate possible assignments
+            for resource in self.resources:
+                for day in self.time_slots['days']:
+                    for hour in self.time_slots['hours']:
+                        # Check if assignment is valid
+                        if self._is_valid_assignment(task, resource, day, hour):
+                            assignment = {
+                                'task_id': task_id,
+                                'task_name': task['name'],
+                                'resource_id': resource['id'],
+                                'resource_name': resource['name'],
+                                'start_day': day,
+                                'start_hour': hour,
+                                'end_hour': hour + task['duration'],
+                                'duration': task['duration']
+                            }
+                            domain.append(assignment)
+            
+            self.domains[task_id] = domain
         
-        # Create constraints
-        constraint_list = []
-        
-        # Add hard constraints
-        constraint_list.extend(self.create_hard_constraints())
-        
-        # Add soft constraints (these will be handled in quality evaluation)
-        
-        self.solver = CSPSolver(variables, constraint_list)
-        return self.solver
+        # Create constraint graph
+        self._build_constraint_graph()
     
-    def create_domain_for_task(self, task: Dict) -> List[Tuple[str, str, int]]:
+    def _is_valid_assignment(self, task: Dict, resource: Dict, day: str, hour: int) -> bool:
         """
-        Create the domain for a task (all possible assignments)
+        Check if a task-resource-time assignment is valid
         
         Args:
             task: Task dictionary
-            
-        Returns:
-            List of possible (resource_id, day, hour) assignments
-        """
-        domain = []
-        days = self.time_slots['days']
-        hours = self.time_slots['hours']
-        duration = task['duration']
-        
-        # For each resource that has the required skills
-        for resource in self.resources:
-            if self.has_required_skills(resource, task):
-                # For each day
-                for day in days:
-                    # For each possible start hour
-                    for start_hour in hours:
-                        # Check if the task can fit in the remaining hours
-                        if start_hour + duration <= max(hours) + 1:
-                            domain.append((resource['id'], day, start_hour))
-        
-        return domain
-    
-    def has_required_skills(self, resource: Dict, task: Dict) -> bool:
-        """
-        Check if a resource has the required skills for a task
-        
-        Args:
             resource: Resource dictionary
-            task: Task dictionary
+            day: Day of the week
+            hour: Starting hour
             
         Returns:
-            True if resource has required skills
+            True if assignment is valid, False otherwise
         """
-        required_skills = set(task.get('required_skills', []))
-        resource_skills = set(resource.get('skills', []))
-        return required_skills.issubset(resource_skills)
+        # Check if resource has required skills
+        required_skills = task.get('required_skills', [])
+        resource_skills = resource.get('skills', [])
+        
+        if required_skills and not all(skill in resource_skills for skill in required_skills):
+            return False
+        
+        # Check if assignment fits within working hours
+        end_hour = hour + task['duration']
+        if end_hour > self.time_slots['working_hours_per_day']:
+            return False
+        
+        # Check resource availability (simplified)
+        max_hours = resource.get('max_hours_per_day', 8)
+        if task['duration'] > max_hours:
+            return False
+        
+        return True
     
-    def create_hard_constraints(self) -> List[CSPConstraint]:
+    def _build_constraint_graph(self):
         """
-        Create hard constraints for the scheduling problem
-        
-        Returns:
-            List of hard constraints
+        Build the constraint graph between variables
         """
-        constraints = []
+        self.constraint_graph = defaultdict(list)
         
-        # No resource overlap constraint
-        def no_overlap(task1_id, task2_id, assignment):
-            if task1_id == task2_id:
-                return True
+        # Add constraints based on task dependencies
+        for task in self.tasks:
+            task_id = task['id']
+            dependencies = task.get('dependencies', [])
             
-            task1_assignment = assignment.get(task1_id)
-            task2_assignment = assignment.get(task2_id)
-            
-            if not task1_assignment or not task2_assignment:
-                return True
-            
-            resource1, day1, hour1 = task1_assignment
-            resource2, day2, hour2 = task2_assignment
-            
-            # If different resources, no overlap
-            if resource1 != resource2:
-                return True
-            
-            # If different days, no overlap
-            if day1 != day2:
-                return True
-            
-            # Check for time overlap
-            task1 = next(t for t in self.tasks if t['id'] == task1_id)
-            task2 = next(t for t in self.tasks if t['id'] == task2_id)
-            
-            duration1 = task1['duration']
-            duration2 = task2['duration']
-            
-            end1 = hour1 + duration1
-            end2 = hour2 + duration2
-            
-            return not (hour1 < end2 and hour2 < end1)
+            for dep_id in dependencies:
+                if dep_id in self.variables:
+                    self.constraint_graph[task_id].append(dep_id)
+                    self.constraint_graph[dep_id].append(task_id)
         
-        # Add no-overlap constraints for all pairs of tasks
-        for i, task1 in enumerate(self.tasks):
-            for j, task2 in enumerate(self.tasks):
-                if i < j:  # Avoid duplicate constraints
-                    constraint = CSPConstraint([task1['id'], task2['id']], no_overlap)
-                    constraints.append(constraint)
-        
-        return constraints
+        # Add resource capacity constraints
+        for resource in self.resources:
+            resource_tasks = [task for task in self.tasks 
+                            if any(skill in resource.get('skills', []) 
+                                  for skill in task.get('required_skills', []))]
+            
+            for i, task1 in enumerate(resource_tasks):
+                for task2 in resource_tasks[i+1:]:
+                    if task1['id'] in self.variables and task2['id'] in self.variables:
+                        self.constraint_graph[task1['id']].append(task2['id'])
+                        self.constraint_graph[task2['id']].append(task1['id'])
     
-    def solve(self, heuristic: str = "mrv", use_arc_consistency: bool = True, 
-              timeout: int = 300) -> Optional[Dict[str, Any]]:
+    def solve(self, heuristic: str = 'mrv', use_arc_consistency: bool = True, 
+              timeout: int = 60) -> Optional[Dict]:
         """
-        Solve the scheduling CSP
+        Solve the CSP using backtracking search
         
         Args:
-            heuristic: Variable ordering heuristic
-            use_arc_consistency: Whether to use arc consistency
-            timeout: Maximum time to spend solving
+            heuristic: Variable ordering heuristic ('mrv', 'degree', 'combined')
+            use_arc_consistency: Whether to use arc consistency preprocessing
+            timeout: Maximum time to spend solving (seconds)
             
         Returns:
-            Schedule solution or None
+            Solution dictionary or None if no solution found
         """
-        if self.solver is None:
-            self.create_csp()
+        start_time = time.time()
         
-        solution = self.solver.solve(heuristic, use_arc_consistency, timeout)
+        # Create a copy of domains for solving
+        domains = {var: list(domain) for var, domain in self.domains.items()}
+        
+        # Apply arc consistency if requested
+        if use_arc_consistency:
+            domains = self._apply_arc_consistency(domains)
+        
+        # Initialize assignment
+        assignment = {}
+        
+        # Solve using backtracking
+        solution = self._backtrack(assignment, domains, heuristic, start_time, timeout)
         
         if solution:
-            return self.format_solution(solution)
+            # Convert to the expected format
+            result = {}
+            for task_id, assignment in solution.items():
+                result[task_id] = assignment
+            return result
         
         return None
     
-    def format_solution(self, raw_solution: Dict[str, Any]) -> Dict[str, Any]:
+    def _apply_arc_consistency(self, domains: Dict) -> Dict:
         """
-        Format the raw CSP solution into a readable schedule
+        Apply arc consistency to reduce domain sizes
         
         Args:
-            raw_solution: Raw solution from CSP solver
+            domains: Current domains
             
         Returns:
-            Formatted schedule
+            Reduced domains
         """
-        schedule = {}
+        # Simplified arc consistency implementation
+        # In a full implementation, this would use AC-3 algorithm
         
-        for task_id, assignment in raw_solution.items():
-            resource_id, day, hour = assignment
-            
-            # Find task details
-            task = next(t for t in self.tasks if t['id'] == task_id)
-            
-            schedule[task_id] = {
-                'task_name': task['name'],
-                'resource_id': resource_id,
-                'resource_name': next(r['name'] for r in self.resources if r['id'] == resource_id),
-                'start_day': day,
-                'start_hour': hour,
-                'duration': task['duration'],
-                'end_day': day,  # Assuming tasks don't span multiple days
-                'end_hour': hour + task['duration'],
-                'priority': task.get('priority', 'medium')
-            }
+        reduced_domains = domains.copy()
         
-        return schedule 
+        # Remove assignments that violate hard constraints
+        for var in self.variables:
+            if var in reduced_domains:
+                valid_assignments = []
+                for assignment in reduced_domains[var]:
+                    if self._check_constraints(assignment, var):
+                        valid_assignments.append(assignment)
+                reduced_domains[var] = valid_assignments
+        
+        return reduced_domains
+    
+    def _check_constraints(self, assignment: Dict, task_id: str) -> bool:
+        """
+        Check if an assignment satisfies all constraints
+        
+        Args:
+            assignment: Task assignment
+            task_id: ID of the task being assigned
+            
+        Returns:
+            True if constraints are satisfied, False otherwise
+        """
+        # Check resource capacity constraints
+        resource_id = assignment['resource_id']
+        start_hour = assignment['start_hour']
+        end_hour = assignment['end_hour']
+        day = assignment['start_day']
+        
+        # Check if resource is available during this time
+        # This is a simplified check - in practice, you'd check against other assignments
+        
+        # Check dependency constraints
+        task = next(t for t in self.tasks if t['id'] == task_id)
+        dependencies = task.get('dependencies', [])
+        
+        # For now, we'll assume dependencies are satisfied
+        # In a full implementation, you'd check that dependent tasks are completed first
+        
+        return True
+    
+    def _backtrack(self, assignment: Dict, domains: Dict, heuristic: str,
+                   start_time: float, timeout: int) -> Optional[Dict]:
+        """
+        Backtracking search implementation
+        
+        Args:
+            assignment: Current partial assignment
+            domains: Current domains
+            heuristic: Variable ordering heuristic
+            start_time: When solving started
+            timeout: Maximum time to spend
+            
+        Returns:
+            Complete assignment or None
+        """
+        # Check timeout
+        if time.time() - start_time > timeout:
+            return None
+        
+        # If all variables are assigned, we have a solution
+        if len(assignment) == len(self.variables):
+            return assignment
+        
+        # Select next variable using heuristic
+        var = self._select_variable(assignment, domains, heuristic)
+        if var is None:
+            return None
+        
+        # Try each value in the variable's domain
+        for value in domains[var]:
+            # Check if this assignment is consistent
+            if self._is_consistent(assignment, var, value):
+                # Make the assignment
+                assignment[var] = value
+                
+                # Recursively solve the rest
+                result = self._backtrack(assignment, domains, heuristic, start_time, timeout)
+                if result is not None:
+                    return result
+                
+                # Backtrack
+                del assignment[var]
+        
+        return None
+    
+    def _select_variable(self, assignment: Dict, domains: Dict, heuristic: str) -> Optional[str]:
+        """
+        Select the next variable to assign using the specified heuristic
+        
+        Args:
+            assignment: Current partial assignment
+            domains: Current domains
+            heuristic: Heuristic to use
+            
+        Returns:
+            Selected variable or None
+        """
+        unassigned = [var for var in self.variables if var not in assignment]
+        
+        if not unassigned:
+            return None
+        
+        if heuristic == 'mrv':
+            return self._mrv_heuristic(unassigned, domains)
+        elif heuristic == 'degree':
+            return self._degree_heuristic(unassigned, domains)
+        elif heuristic == 'combined':
+            return self._combined_heuristic(unassigned, domains)
+        else:
+            # Default to first unassigned variable
+            return unassigned[0]
+    
+    def _mrv_heuristic(self, variables: List[str], domains: Dict) -> str:
+        """
+        Minimum Remaining Values heuristic
+        """
+        min_values = float('inf')
+        selected_var = variables[0]
+        
+        for var in variables:
+            if var in domains and len(domains[var]) < min_values:
+                min_values = len(domains[var])
+                selected_var = var
+        
+        return selected_var
+    
+    def _degree_heuristic(self, variables: List[str], domains: Dict) -> str:
+        """
+        Degree heuristic
+        """
+        max_degree = -1
+        selected_var = variables[0]
+        
+        for var in variables:
+            degree = len(self.constraint_graph.get(var, []))
+            if degree > max_degree:
+                max_degree = degree
+                selected_var = var
+        
+        return selected_var
+    
+    def _combined_heuristic(self, variables: List[str], domains: Dict) -> str:
+        """
+        Combined heuristic (MRV + Degree tiebreaker)
+        """
+        # Find variables with minimum remaining values
+        min_values = float('inf')
+        mrv_vars = []
+        
+        for var in variables:
+            if var in domains:
+                num_values = len(domains[var])
+                if num_values < min_values:
+                    min_values = num_values
+                    mrv_vars = [var]
+                elif num_values == min_values:
+                    mrv_vars.append(var)
+        
+        # If only one MRV variable, return it
+        if len(mrv_vars) == 1:
+            return mrv_vars[0]
+        
+        # Otherwise, use degree heuristic as tiebreaker
+        max_degree = -1
+        selected_var = mrv_vars[0]
+        
+        for var in mrv_vars:
+            degree = len(self.constraint_graph.get(var, []))
+            if degree > max_degree:
+                max_degree = degree
+                selected_var = var
+        
+        return selected_var
+    
+    def _is_consistent(self, assignment: Dict, var: str, value: Dict) -> bool:
+        """
+        Check if an assignment is consistent with current partial assignment
+        
+        Args:
+            assignment: Current partial assignment
+            var: Variable being assigned
+            value: Value being assigned
+            
+        Returns:
+            True if consistent, False otherwise
+        """
+        # Check resource conflicts
+        resource_id = value['resource_id']
+        start_hour = value['start_hour']
+        end_hour = value['end_hour']
+        day = value['start_day']
+        
+        for assigned_var, assigned_value in assignment.items():
+            if (assigned_value['resource_id'] == resource_id and
+                assigned_value['start_day'] == day):
+                # Check for time overlap
+                if not (end_hour <= assigned_value['start_hour'] or 
+                       start_hour >= assigned_value['end_hour']):
+                    return False
+        
+        return True 
