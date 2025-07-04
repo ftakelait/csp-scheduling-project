@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # AI Course Development Environment Setup Script
-# This script sets up the Docker environment for students
+# Students can run this from anywhere to set up the Docker environment
 
 echo "==============================================="
 echo "AI Course Development Environment Setup"
@@ -29,24 +29,39 @@ fi
 echo "✅ Docker and Docker Compose are installed"
 echo ""
 
-# Create necessary directories
-echo "Creating directories..."
-mkdir -p student_data
-mkdir -p output
-mkdir -p student_projects
-mkdir -p student_submissions
-mkdir -p grading_reports
+# Create necessary directories in student's home
+echo "Creating directories in your home folder..."
+mkdir -p ~/ai-course-work
+mkdir -p ~/ai-course-data
+mkdir -p ~/ai-course-output
+mkdir -p ~/ai-course-projects
+mkdir -p ~/ai-course-submissions
+mkdir -p ~/ai-course-grading
 
-echo "✅ Directories created:"
-echo "  - student_data/ (for your data files)"
-echo "  - output/ (for generated files)"
-echo "  - student_projects/ (for your own projects)"
-echo "  - student_submissions/ (for assignment submissions)"
-echo "  - grading_reports/ (for grading results)"
+echo "✅ Directories created in your home folder:"
+echo "  - ~/ai-course-work/ (for your assignment work)"
+echo "  - ~/ai-course-data/ (for data files)"
+echo "  - ~/ai-course-output/ (for generated files)"
+echo "  - ~/ai-course-projects/ (for your own projects)"
+echo "  - ~/ai-course-submissions/ (for submitting assignments)"
+echo "  - ~/ai-course-grading/ (for grading results)"
 echo ""
+
+# Check if Dockerfile and docker-compose.yml exist in current directory
+if [ ! -f "Dockerfile" ] || [ ! -f "docker-compose.yml" ]; then
+    echo "❌ Error: Dockerfile and docker-compose.yml not found!"
+    echo ""
+    echo "Please make sure you have these files in your current directory:"
+    echo "  - Dockerfile"
+    echo "  - docker-compose.yml"
+    echo ""
+    echo "If you don't have them, download them from your instructor."
+    exit 1
+fi
 
 # Build the Docker image
 echo "Building Docker image (this may take a few minutes)..."
+echo "The image will clone the course repository: https://github.com/ftakelait/csp-scheduling-project/"
 docker-compose build
 
 if [ $? -eq 0 ]; then
@@ -61,21 +76,25 @@ echo "==============================================="
 echo "Setup Complete! 🎉"
 echo "==============================================="
 echo ""
+echo "The Docker environment is ready with the course repository!"
+echo ""
 echo "To start the development environment:"
 echo "  docker-compose up ai-course-dev"
 echo ""
 echo "To start Jupyter Notebook:"
 echo "  docker-compose up jupyter"
 echo ""
-echo "To run a specific assignment:"
+echo "To run the CSP assignment:"
 echo "  docker-compose run --rm ai-course-dev run_assignment csp-scheduling-project"
 echo ""
-echo "To grade a student submission:"
-echo "  docker-compose run --rm grader grade_assignment /workspace/student_submissions/student_file.py"
+echo "To list all available assignments:"
+echo "  docker-compose run --rm ai-course-dev list_assignments"
 echo ""
-echo "Useful commands:"
-echo "  - docker-compose ps (check running containers)"
-echo "  - docker-compose down (stop all containers)"
-echo "  - docker-compose logs (view logs)"
+echo "Your work will be saved in:"
+echo "  ~/ai-course-work/ (assignment work)"
+echo "  ~/ai-course-projects/ (your projects)"
+echo "  ~/ai-course-output/ (generated files)"
+echo ""
+echo "Course Repository: https://github.com/ftakelait/csp-scheduling-project/"
 echo ""
 echo "Happy coding! 🚀" 

@@ -25,9 +25,8 @@ WORKDIR /workspace
 # Clone the course repository
 RUN git clone https://github.com/ftakelait/csp-scheduling-project.git /workspace/course-repo
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies from the cloned repository
+RUN pip install --no-cache-dir -r /workspace/course-repo/requirements.txt
 
 # Install additional development tools
 RUN pip install --no-cache-dir \

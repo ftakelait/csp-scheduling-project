@@ -1,165 +1,195 @@
-# 🎓 Student Guide - AI Course Development Environment
+# Student Guide: AI Course Development Environment
 
-## 🚀 Quick Start (5 minutes)
+## Quick Start (5 minutes)
 
-### Step 1: Install Docker
-- **Windows/Mac**: Download and install [Docker Desktop](https://docs.docker.com/desktop/)
-- **Linux**: Install [Docker Engine](https://docs.docker.com/engine/install/) + [Docker Compose](https://docs.docker.com/compose/install/)
+### 1. Prerequisites
+- **Docker Desktop** installed on your computer
+  - Windows/Mac: Download from [Docker Desktop](https://docs.docker.com/desktop/)
+  - Linux: Follow [Docker Engine installation](https://docs.docker.com/engine/install/)
 
-### Step 2: Download Course Files
-```bash
-git clone https://github.com/ftakelait/csp-scheduling-project.git
-cd csp-scheduling-project
-```
+### 2. Setup (One-time)
+1. Download the Docker files from your instructor:
+   - `Dockerfile`
+   - `docker-compose.yml`
+   - `setup.sh`
+   - `STUDENT_GUIDE.md` (this file)
 
-### Step 3: Setup Environment
-```bash
-# Make setup script executable (Linux/Mac only)
-chmod +x setup-student.sh
+2. Open terminal/command prompt in the folder with these files
 
-# Run setup
-./setup-student.sh
-```
+3. Run the setup script:
+   ```bash
+   # On Windows (PowerShell):
+   .\setup.sh
+   
+   # On Mac/Linux:
+   chmod +x setup.sh
+   ./setup.sh
+   ```
 
-### Step 4: Start Working
+4. Wait for the setup to complete (downloads course repository and builds environment)
+
+### 3. Start Working
 ```bash
 # Start the development environment
 docker-compose up ai-course-dev
+
+# Or start Jupyter Notebook
+docker-compose up jupyter
 ```
 
-## 🎯 What You'll See
+## What's Included
 
-After starting the environment, you'll see:
+The Docker environment automatically includes:
+- **Course Repository**: https://github.com/ftakelait/csp-scheduling-project/
+- **CSP Scheduling Project**: Complete assignment with GUI, tests, and grader
+- **Python 3.11** with all necessary packages
+- **Development Tools**: Jupyter, pytest, git, vim, nano
+- **Persistent Storage**: Your work is saved in your home directory
 
-```
-===============================================
-Welcome to the AI Course Development Environment
-===============================================
+## Your Work Directories
 
-Course Repository: https://github.com/ftakelait/csp-scheduling-project/
+All your work is automatically saved in your home directory:
+- `~/ai-course-work/` - Your assignment work
+- `~/ai-course-projects/` - Your own projects
+- `~/ai-course-data/` - Data files
+- `~/ai-course-output/` - Generated files
+- `~/ai-course-submissions/` - Assignment submissions
+- `~/ai-course-grading/` - Grading results
 
-Available assignments and projects:
-1. CSP Scheduling Project: /workspace/assignments/csp-scheduling-project/
-2. Your projects: /workspace/projects/
-3. Your work: /workspace/student_work/
-4. Tools: /workspace/tools/
-
-Quick start commands:
-- cd /workspace/assignments/csp-scheduling-project/
-- python src/csp_scheduling_project.py
-- python test_project.py
-- python gui/scheduler_gui.py
-```
-
-## 📝 Working on Assignments
+## Working with Assignments
 
 ### CSP Scheduling Project
+```bash
+# Run the main assignment
+docker-compose run --rm ai-course-dev run_assignment csp-scheduling-project
+
+# Or start the development environment and work interactively
+docker-compose up ai-course-dev
+```
+
+### Inside the Container
+Once inside the container, you can:
 ```bash
 # Navigate to the assignment
 cd /workspace/assignments/csp-scheduling-project/
 
-# Run the main assignment
+# Run the main program
 python src/csp_scheduling_project.py
 
-# Test your code
+# Run tests
 python test_project.py
 
-# Run the GUI
+# Start the GUI
 python gui/scheduler_gui.py
+
+# Run the grader on your work
+python grader.py /workspace/student_work/my_solution.py
 ```
 
-### Your Work is Automatically Saved
-- All your work is saved in `~/ai-course-work/` on your computer
-- You can access it even when Docker is not running
-- Your work persists between Docker sessions
-
-## 🛠️ Useful Commands
-
+### Creating Your Own Projects
 ```bash
-# List all available assignments
-list_assignments
-
-# Run a specific assignment
-run_assignment csp-scheduling-project
-
 # Create a new project
-create_project my-awesome-project
+docker-compose run --rm ai-course-dev create_project my_awesome_project
 
-# Start Jupyter Notebook
-jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+# Work on your project
+cd ~/ai-course-projects/my_awesome_project/
 ```
 
-## 📁 Your Files
+## Jupyter Notebook
 
-Your work is saved in these folders on your computer:
-
-- `~/ai-course-work/` - Your assignment work
-- `~/ai-course-projects/` - Your own projects
-- `~/ai-course-output/` - Generated files (charts, reports)
-- `~/ai-course-data/` - Data files
-- `~/ai-course-submissions/` - Assignment submissions
-- `~/ai-course-grading/` - Grading results
-
-## 🔧 Common Tasks
-
-### Start Development Environment
+For interactive development:
 ```bash
-docker-compose up ai-course-dev
-```
-
-### Stop Environment
-```bash
-# Press Ctrl+C in the terminal
-# Or in another terminal:
-docker-compose down
-```
-
-### Update Course Materials
-```bash
-# Get latest changes from GitHub
-docker-compose build --no-cache
-```
-
-### Access Jupyter Notebook
-```bash
-# Start Jupyter service
+# Start Jupyter
 docker-compose up jupyter
 
 # Open in browser: http://localhost:8889
 ```
 
-## 🐛 Troubleshooting
+## Useful Commands
 
-### "Docker not found"
-- Install Docker Desktop (Windows/Mac) or Docker Engine (Linux)
-- Make sure Docker is running
-
-### "Permission denied"
+### Container Management
 ```bash
-chmod +x setup-student.sh
+# Start development environment
+docker-compose up ai-course-dev
+
+# Start Jupyter
+docker-compose up jupyter
+
+# Stop all containers
+docker-compose down
+
+# View running containers
+docker-compose ps
+
+# View logs
+docker-compose logs
 ```
 
-### "Port already in use"
-- Close other applications using ports 8888, 8000, or 5000
-- Or change ports in docker-compose.yml
-
-### "Out of disk space"
+### Assignment Commands
 ```bash
-docker system prune -a
+# List all assignments
+docker-compose run --rm ai-course-dev list_assignments
+
+# Run specific assignment
+docker-compose run --rm ai-course-dev run_assignment csp-scheduling-project
+
+# Grade your submission
+docker-compose run --rm ai-course-dev grade_assignment /workspace/student_work/my_file.py
 ```
 
-## 📞 Getting Help
+### Development Commands
+```bash
+# Create new project
+docker-compose run --rm ai-course-dev create_project project_name
 
-1. Check this guide first
-2. Look at the troubleshooting section
-3. Check the course repository: https://github.com/ftakelait/csp-scheduling-project/
-4. Contact your instructor
+# Start interactive shell
+docker-compose run --rm ai-course-dev /bin/bash
+```
 
-## 🎉 You're Ready!
+## Troubleshooting
 
-- ✅ Docker environment is set up
-- ✅ Course materials are available
-- ✅ Your work is automatically saved
-- ✅ You can work on any OS (Windows, Mac, Linux)
+### Docker Issues
+```bash
+# If containers won't start
+docker-compose down
+docker system prune -f
+docker-compose up ai-course-dev
 
-**Happy coding! 🚀** 
+# If image is corrupted
+docker-compose down
+docker rmi ai-course-dev_ai-course-dev
+docker-compose build
+```
+
+### Permission Issues (Linux/Mac)
+```bash
+# Fix file permissions
+sudo chown -R $USER:$USER ~/ai-course-*
+```
+
+### Windows Issues
+- Make sure Docker Desktop is running
+- Use PowerShell or WSL for better compatibility
+- If paths have spaces, use quotes: `"C:\Users\Your Name\ai-course-work"`
+
+## Getting Help
+
+1. **Check the logs**: `docker-compose logs`
+2. **Restart containers**: `docker-compose down && docker-compose up ai-course-dev`
+3. **Rebuild if needed**: `docker-compose build --no-cache`
+4. **Ask your instructor** with the error message
+
+## Course Repository
+
+The environment automatically includes the course repository:
+- **GitHub**: https://github.com/ftakelait/csp-scheduling-project/
+- **Location in container**: `/workspace/assignments/csp-scheduling-project/`
+
+## Next Steps
+
+1. **Complete the CSP assignment** in `/workspace/assignments/csp-scheduling-project/`
+2. **Create your own projects** using `create_project`
+3. **Use Jupyter** for interactive development
+4. **Submit your work** to the `~/ai-course-submissions/` directory
+
+Happy coding! 🚀 
