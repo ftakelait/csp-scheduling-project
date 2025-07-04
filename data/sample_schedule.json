@@ -1,5 +1,6 @@
 {
-  "tasks": [
+  "schedule": {
+    "tasks": [
     {
       "id": "T1",
       "name": "Database Design",

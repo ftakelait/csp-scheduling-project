@@ -1,9 +1,10 @@
 """
 Constraint Utilities for CSP Scheduling Project
-Functions for checking constraints and calculating schedule metrics
+Functions for checking various types of constraints in scheduling problems
 """
 
 from typing import Dict, List, Any, Optional, Tuple
+from collections import defaultdict
 
 def get_constraint_violations(assignment: Dict[str, Any], task_id: str, 
                             resources: List[Dict], tasks: List[Dict], 
@@ -172,31 +173,26 @@ def calculate_schedule_score(solution: Dict[str, Any], tasks: List[Dict],
     
     return min(1.0, max(0.0, score))
 
-def check_resource_availability(resource_id: str, day: str, start_hour: int, 
-                              end_hour: int, solution: Dict[str, Any]) -> bool:
+def check_resource_availability(resource_id: str, day: str, hour: int, 
+                              resources: List[Dict]) -> bool:
     """
-    Check if a resource is available during a specific time period
+    Check if a resource is available at a specific time slot
     
     Args:
         resource_id: ID of the resource
         day: Day of the week
-        start_hour: Starting hour
-        end_hour: Ending hour
-        solution: Current solution
+        hour: Hour of the day
+        resources: List of resource dictionaries
         
     Returns:
         True if resource is available, False otherwise
     """
-    for assignment in solution.values():
-        if (assignment['resource_id'] == resource_id and 
-            assignment['start_day'] == day):
-            
-            # Check for overlap
-            if not (end_hour <= assignment['start_hour'] or 
-                   start_hour >= assignment['end_hour']):
-                return False
-    
-    return True
+    for resource in resources:
+        if resource['id'] == resource_id:
+            availability = resource.get('availability', {})
+            if day in availability and hour in availability[day]:
+                return True
+    return False
 
 def get_resource_utilization(resource_id: str, solution: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -255,4 +251,220 @@ def validate_solution_completeness(solution: Dict[str, Any], tasks: List[Dict]) 
         'total_tasks': len(tasks),
         'scheduled_tasks': len(solution),
         'completion_rate': len(solution) / len(tasks) if len(tasks) > 0 else 0
-    } 
+    }
+
+def check_task_dependencies(task_id: str, start_time: Dict, 
+                           schedule: Dict, tasks: List[Dict]) -> bool:
+    """
+    Check if all dependencies of a task are completed before its start time
+    
+    Args:
+        task_id: ID of the task
+        start_time: Start time dictionary with 'day' and 'hour' keys
+        schedule: Current schedule assignments
+        tasks: List of task dictionaries
+        
+    Returns:
+        True if dependencies are satisfied, False otherwise
+    """
+    # Find the task and its dependencies
+    task = None
+    for t in tasks:
+        if t['id'] == task_id:
+            task = t
+            break
+    
+    if not task:
+        return False
+    
+    dependencies = task.get('dependencies', [])
+    
+    # Check if all dependencies are completed
+    for dep_id in dependencies:
+        if dep_id not in schedule:
+            return False
+        
+        dep_assignment = schedule[dep_id]
+        dep_end_time = {
+            'day': dep_assignment['start_day'],
+            'hour': dep_assignment['end_hour']
+        }
+        
+        # Check if dependency ends before this task starts
+        if not _time_before(dep_end_time, start_time):
+            return False
+    
+    return True
+
+def check_resource_skills(resource_id: str, task_id: str, 
+                         resources: List[Dict], tasks: List[Dict]) -> bool:
+    """
+    Check if a resource has the required skills for a task
+    
+    Args:
+        resource_id: ID of the resource
+        task_id: ID of the task
+        resources: List of resource dictionaries
+        tasks: List of task dictionaries
+        
+    Returns:
+        True if resource has required skills, False otherwise
+    """
+    # Find the resource and task
+    resource = None
+    task = None
+    
+    for r in resources:
+        if r['id'] == resource_id:
+            resource = r
+            break
+    
+    for t in tasks:
+        if t['id'] == task_id:
+            task = t
+            break
+    
+    if not resource or not task:
+        return False
+    
+    required_skills = task.get('required_skills', [])
+    resource_skills = resource.get('skills', [])
+    
+    return all(skill in resource_skills for skill in required_skills)
+
+def check_max_hours_per_day(resource_id: str, day: str, schedule: Dict,
+                           resources: List[Dict]) -> bool:
+    """
+    Check if a resource exceeds their maximum hours per day
+    
+    Args:
+        resource_id: ID of the resource
+        day: Day of the week
+        schedule: Current schedule assignments
+        resources: List of resource dictionaries
+        
+    Returns:
+        True if within limits, False otherwise
+    """
+    # Find the resource's max hours
+    max_hours = 8  # Default
+    for resource in resources:
+        if resource['id'] == resource_id:
+            max_hours = resource.get('max_hours_per_day', 8)
+            break
+    
+    # Calculate total hours for this resource on this day
+    total_hours = 0
+    for task_id, assignment in schedule.items():
+        if (assignment.get('resource_id') == resource_id and 
+            assignment.get('start_day') == day):
+            total_hours += assignment.get('duration', 0)
+    
+    return total_hours <= max_hours
+
+def check_preferred_resources(task_id: str, resource_id: str, 
+                            tasks: List[Dict]) -> bool:
+    """
+    Check if a task is assigned to one of its preferred resources
+    
+    Args:
+        task_id: ID of the task
+        resource_id: ID of the resource
+        tasks: List of task dictionaries
+        
+    Returns:
+        True if resource is preferred, False otherwise
+    """
+    for task in tasks:
+        if task['id'] == task_id:
+            preferred_resources = task.get('preferred_resources', [])
+            return resource_id in preferred_resources
+    return False
+
+def check_task_priority(task_id: str, start_time: Dict, schedule: Dict,
+                       tasks: List[Dict]) -> float:
+    """
+    Check if higher priority tasks are scheduled earlier
+    
+    Args:
+        task_id: ID of the task
+        start_time: Start time dictionary
+        schedule: Current schedule assignments
+        tasks: List of task dictionaries
+        
+    Returns:
+        Score based on priority scheduling (higher is better)
+    """
+    # Find the task's priority
+    task_priority = 'medium'  # Default
+    for task in tasks:
+        if task['id'] == task_id:
+            task_priority = task.get('priority', 'medium')
+            break
+    
+    # Priority weights
+    priority_weights = {'high': 3, 'medium': 2, 'low': 1}
+    weight = priority_weights.get(task_priority, 1)
+    
+    # Calculate score based on start time (earlier is better)
+    # This is a simplified scoring - in practice, you'd want more sophisticated logic
+    day_order = {'monday': 0, 'tuesday': 1, 'wednesday': 2, 'thursday': 3, 'friday': 4}
+    day_score = day_order.get(start_time.get('day', 'monday'), 0)
+    hour_score = start_time.get('hour', 9)
+    
+    return weight * (5 - day_score) * (18 - hour_score)
+
+def check_balanced_workload(schedule: Dict, resources: List[Dict]) -> float:
+    """
+    Calculate workload balance among all resources
+    
+    Args:
+        schedule: Current schedule assignments
+        resources: List of resource dictionaries
+        
+    Returns:
+        Balance score (higher is better)
+    """
+    # Calculate workload for each resource
+    workloads = defaultdict(int)
+    for task_id, assignment in schedule.items():
+        resource_id = assignment.get('resource_id')
+        duration = assignment.get('duration', 0)
+        workloads[resource_id] += duration
+    
+    if not workloads:
+        return 0.0
+    
+    # Calculate variance in workloads
+    values = list(workloads.values())
+    mean_workload = sum(values) / len(values)
+    variance = sum((x - mean_workload) ** 2 for x in values) / len(values)
+    
+    # Convert to a score (lower variance = higher score)
+    max_possible_variance = 100  # Arbitrary maximum
+    balance_score = max(0, 1 - (variance / max_possible_variance))
+    
+    return balance_score
+
+def _time_before(time1: Dict, time2: Dict) -> bool:
+    """
+    Helper function to compare two times
+    
+    Args:
+        time1: First time dictionary with 'day' and 'hour' keys
+        time2: Second time dictionary with 'day' and 'hour' keys
+        
+    Returns:
+        True if time1 is before time2, False otherwise
+    """
+    day_order = {'monday': 0, 'tuesday': 1, 'wednesday': 2, 'thursday': 3, 'friday': 4}
+    
+    day1 = day_order.get(time1.get('day', 'monday'), 0)
+    day2 = day_order.get(time2.get('day', 'monday'), 0)
+    
+    if day1 < day2:
+        return True
+    elif day1 > day2:
+        return False
+    else:
+        return time1.get('hour', 0) < time2.get('hour', 0) 
