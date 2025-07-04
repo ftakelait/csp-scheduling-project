@@ -9,14 +9,14 @@ services:
       - "8000:8000"  # HTTP Server
       - "5000:5000"  # Flask/Web apps
     volumes:
-      # Mount current directory to assignments
-      - .:/workspace/assignments/csp-scheduling-project
+      # Mount student's home directory for persistent work
+      - ~/ai-course-work:/workspace/student_work
       # Mount a persistent data directory
-      - ./student_data:/workspace/data
+      - ~/ai-course-data:/workspace/data
       # Mount output directory for generated files
-      - ./output:/workspace/output
+      - ~/ai-course-output:/workspace/output
       # Mount projects directory for student projects
-      - ./student_projects:/workspace/projects
+      - ~/ai-course-projects:/workspace/projects
     environment:
       - PYTHONPATH=/workspace
       - PYTHONUNBUFFERED=1
@@ -32,10 +32,10 @@ services:
     ports:
       - "8889:8888"  # Different port to avoid conflicts
     volumes:
-      - .:/workspace/assignments/csp-scheduling-project
-      - ./student_data:/workspace/data
-      - ./output:/workspace/output
-      - ./student_projects:/workspace/projects
+      - ~/ai-course-work:/workspace/student_work
+      - ~/ai-course-data:/workspace/data
+      - ~/ai-course-output:/workspace/output
+      - ~/ai-course-projects:/workspace/projects
     environment:
       - PYTHONPATH=/workspace
       - PYTHONUNBUFFERED=1
@@ -47,9 +47,9 @@ services:
     build: .
     container_name: ai-course-grader
     volumes:
-      - .:/workspace/assignments/csp-scheduling-project
-      - ./student_submissions:/workspace/student_submissions
-      - ./grading_reports:/workspace/grading_reports
+      - ~/ai-course-work:/workspace/student_work
+      - ~/ai-course-submissions:/workspace/student_submissions
+      - ~/ai-course-grading:/workspace/grading_reports
     environment:
       - PYTHONPATH=/workspace
     working_dir: /workspace/assignments/csp-scheduling-project

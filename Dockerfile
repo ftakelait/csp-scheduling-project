@@ -22,6 +22,9 @@ RUN apt-get update && apt-get install -y \
 # Create workspace directory
 WORKDIR /workspace
 
+# Clone the course repository
+RUN git clone https://github.com/ftakelait/csp-scheduling-project.git /workspace/course-repo
+
 # Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -41,10 +44,11 @@ RUN mkdir -p /workspace/projects \
     && mkdir -p /workspace/assignments \
     && mkdir -p /workspace/tools \
     && mkdir -p /workspace/data \
-    && mkdir -p /workspace/output
+    && mkdir -p /workspace/output \
+    && mkdir -p /workspace/student_work
 
-# Copy the current project to assignments folder
-COPY . /workspace/assignments/csp-scheduling-project/
+# Copy assignments from the cloned repo
+RUN cp -r /workspace/course-repo/* /workspace/assignments/csp-scheduling-project/
 
 # Create a welcome script
 RUN echo '#!/bin/bash\n\
@@ -52,10 +56,13 @@ echo "==============================================="\n\
 echo "Welcome to the AI Course Development Environment"\n\
 echo "==============================================="\n\
 echo ""\n\
-echo "Available projects and assignments:"\n\
+echo "Course Repository: https://github.com/ftakelait/csp-scheduling-project/"\n\
+echo ""\n\
+echo "Available assignments and projects:"\n\
 echo "1. CSP Scheduling Project: /workspace/assignments/csp-scheduling-project/"\n\
-echo "2. Other projects: /workspace/projects/"\n\
-echo "3. Tools: /workspace/tools/"\n\
+echo "2. Your projects: /workspace/projects/"\n\
+echo "3. Your work: /workspace/student_work/"\n\
+echo "4. Tools: /workspace/tools/"\n\
 echo ""\n\
 echo "Quick start commands:"\n\
 echo "- cd /workspace/assignments/csp-scheduling-project/"\n\
@@ -280,6 +287,21 @@ case $ASSIGNMENT_NAME in\n\
         fi\n\
         ;;\nesac\n\
 ' > /workspace/tools/run_assignment && chmod +x /workspace/tools/run_assignment
+
+# Create a list assignments script
+RUN echo '#!/bin/bash\n\
+# List all available assignments\n\
+echo "Available assignments in the course repository:"\n\
+echo "==============================================="\n\
+ls -la /workspace/assignments/\n\
+echo ""\n\
+echo "Course repository: https://github.com/ftakelait/csp-scheduling-project/"\n\
+echo ""\n\
+echo "To work on an assignment:"\n\
+echo "1. cd /workspace/assignments/<assignment-name>/"\n\
+echo "2. Follow the assignment instructions"\n\
+echo "3. Your work will be saved in /workspace/student_work/"\n\
+' > /workspace/tools/list_assignments && chmod +x /workspace/tools/list_assignments
 
 # Set default command
 CMD ["/workspace/welcome.sh"] 
