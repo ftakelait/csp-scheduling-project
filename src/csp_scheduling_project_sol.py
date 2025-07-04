@@ -537,38 +537,8 @@ print("\n" + "=" * 60)
 print("STEP 6: VISUALIZATION")
 print("=" * 60)
 
-# SOLUTION: Implement Gantt chart creation
-# This function creates a Gantt chart visualization of the schedule
-def create_gantt_chart(solution, tasks, resources):
-    """
-    Create a Gantt chart visualization
-    
-    Args:
-        solution: Dictionary mapping task IDs to assignments
-        tasks: List of all tasks
-        resources: List of all resources
-        
-    Returns:
-        Matplotlib figure object
-    """
-    # Use the provided utility function
-    return create_gantt_chart(solution, tasks, resources)
-
-# SOLUTION: Implement resource utilization chart
-# This function creates a chart showing resource utilization
-def create_resource_utilization_chart(solution, resources):
-    """
-    Create a resource utilization chart
-    
-    Args:
-        solution: Dictionary mapping task IDs to assignments
-        resources: List of all resources
-        
-    Returns:
-        Matplotlib figure object
-    """
-    # Use the provided utility function
-    return create_resource_utilization_chart(solution, resources)
+# SOLUTION: Create visualizations using the provided utility functions
+# These functions create visualizations of the schedule and resource utilization
 
 # Create visualizations
 if best_solution:

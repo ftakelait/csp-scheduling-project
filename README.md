@@ -2,9 +2,9 @@
 
 **Programming Project Assignment: CSCI 384 AI - Advanced Level**
 
-This project implements a **Constraint Satisfaction Problem (CSP)** solver for complex scheduling scenarios, featuring a desktop GUI application and advanced algorithmic implementations. Students will build a comprehensive scheduling system that can handle multiple constraints, resources, and optimization goals.
+This project implements a **Constraint Satisfaction Problem (CSP)** solver for scheduling scenarios, featuring a desktop GUI application and algorithmic implementations. Students will build a scheduling system that can handle constraints, resources, and optimization goals in a student-friendly environment.
 
-**Difficulty Level: 9/10** ⭐⭐⭐⭐⭐⭐⭐⭐⭐
+**Difficulty Level: 5/10** ⭐⭐⭐⭐⭐
 
 ---
 

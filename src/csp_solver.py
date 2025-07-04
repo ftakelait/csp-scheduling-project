@@ -92,18 +92,20 @@ class SchedulingCSP:
         required_skills = task.get('required_skills', [])
         resource_skills = resource.get('skills', [])
         
-        if required_skills and not all(skill in resource_skills for skill in required_skills):
+        if required_skills and not any(skill in resource_skills for skill in required_skills):
             return False
         
         # Check if assignment fits within working hours
         end_hour = hour + task['duration']
-        if end_hour > self.time_slots['working_hours_per_day']:
+        if end_hour > max(self.time_slots['hours']) + 1:
             return False
         
-        # Check resource availability (simplified)
-        max_hours = resource.get('max_hours_per_day', 8)
-        if task['duration'] > max_hours:
-            return False
+        # Check resource availability
+        if day in resource.get('availability', {}):
+            available_hours = resource['availability'][day]
+            for h in range(hour, end_hour):
+                if h not in available_hours:
+                    return False
         
         return True
     
@@ -209,22 +211,13 @@ class SchedulingCSP:
         Returns:
             True if constraints are satisfied, False otherwise
         """
-        # Check resource capacity constraints
-        resource_id = assignment['resource_id']
-        start_hour = assignment['start_hour']
-        end_hour = assignment['end_hour']
-        day = assignment['start_day']
+        # Simplified constraint checking for student-friendly version
+        # In a real implementation, you'd check for resource conflicts, dependencies, etc.
         
-        # Check if resource is available during this time
-        # This is a simplified check - in practice, you'd check against other assignments
-        
-        # Check dependency constraints
-        task = next(t for t in self.tasks if t['id'] == task_id)
-        dependencies = task.get('dependencies', [])
-        
-        # For now, we'll assume dependencies are satisfied
-        # In a full implementation, you'd check that dependent tasks are completed first
-        
+        # For now, just check basic validity
+        if not assignment or 'resource_id' not in assignment:
+            return False
+            
         return True
     
     def _backtrack(self, assignment: Dict, domains: Dict, heuristic: str,

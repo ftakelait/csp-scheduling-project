@@ -1,176 +1,134 @@
 {
   "schedule": {
     "tasks": [
-    {
-      "id": "T1",
-      "name": "Database Design",
-      "duration": 3,
-      "priority": "high",
-      "required_skills": ["database", "design"],
-      "dependencies": [],
-      "preferred_resources": ["R1", "R3"]
-    },
-    {
-      "id": "T2", 
-      "name": "Frontend Development",
-      "duration": 4,
-      "priority": "medium",
-      "required_skills": ["frontend", "javascript"],
-      "dependencies": ["T1"],
-      "preferred_resources": ["R2", "R4"]
-    },
-    {
-      "id": "T3",
-      "name": "Backend API",
-      "duration": 5,
-      "priority": "high",
-      "required_skills": ["backend", "api"],
-      "dependencies": ["T1"],
-      "preferred_resources": ["R1", "R5"]
-    },
-    {
-      "id": "T4",
-      "name": "Testing",
-      "duration": 2,
-      "priority": "medium",
-      "required_skills": ["testing", "qa"],
-      "dependencies": ["T2", "T3"],
-      "preferred_resources": ["R6", "R7"]
-    },
-    {
-      "id": "T5",
-      "name": "Documentation",
-      "duration": 1,
-      "priority": "low",
-      "required_skills": ["documentation"],
-      "dependencies": ["T4"],
-      "preferred_resources": ["R8"]
-    }
-  ],
-  "resources": [
-    {
-      "id": "R1",
-      "name": "Alice Johnson",
-      "skills": ["database", "backend", "api"],
-      "availability": {
-        "monday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "tuesday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "wednesday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "thursday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "friday": [9, 10, 11, 12, 13, 14, 15, 16, 17]
+      {
+        "id": "T1",
+        "name": "Database Design",
+        "duration": 2,
+        "priority": "high",
+        "required_skills": ["database"],
+        "dependencies": [],
+        "preferred_resources": ["R1", "R2"]
       },
-      "max_hours_per_day": 8
-    },
-    {
-      "id": "R2",
-      "name": "Bob Smith",
-      "skills": ["frontend", "javascript", "design"],
-      "availability": {
-        "monday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "tuesday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "wednesday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "thursday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "friday": [9, 10, 11, 12, 13, 14, 15, 16, 17]
+      {
+        "id": "T2", 
+        "name": "Frontend Development",
+        "duration": 3,
+        "priority": "medium",
+        "required_skills": ["frontend"],
+        "dependencies": [],
+        "preferred_resources": ["R2", "R3"]
       },
-      "max_hours_per_day": 8
-    },
-    {
-      "id": "R3",
-      "name": "Carol Davis",
-      "skills": ["database", "design", "frontend"],
-      "availability": {
-        "monday": [10, 11, 12, 13, 14, 15, 16],
-        "tuesday": [10, 11, 12, 13, 14, 15, 16],
-        "wednesday": [10, 11, 12, 13, 14, 15, 16],
-        "thursday": [10, 11, 12, 13, 14, 15, 16],
-        "friday": [10, 11, 12, 13, 14, 15, 16]
+      {
+        "id": "T3",
+        "name": "Backend API",
+        "duration": 2,
+        "priority": "high",
+        "required_skills": ["backend"],
+        "dependencies": [],
+        "preferred_resources": ["R1", "R4"]
       },
-      "max_hours_per_day": 7
-    },
-    {
-      "id": "R4",
-      "name": "David Wilson",
-      "skills": ["frontend", "javascript"],
-      "availability": {
-        "monday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "tuesday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "wednesday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "thursday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "friday": [9, 10, 11, 12, 13, 14, 15, 16, 17]
+      {
+        "id": "T4",
+        "name": "Testing",
+        "duration": 1,
+        "priority": "medium",
+        "required_skills": ["testing"],
+        "dependencies": [],
+        "preferred_resources": ["R3", "R4"]
       },
-      "max_hours_per_day": 8
-    },
-    {
-      "id": "R5",
-      "name": "Eva Brown",
-      "skills": ["backend", "api", "testing"],
-      "availability": {
-        "monday": [9, 10, 11, 12, 13, 14, 15, 16],
-        "tuesday": [9, 10, 11, 12, 13, 14, 15, 16],
-        "wednesday": [9, 10, 11, 12, 13, 14, 15, 16],
-        "thursday": [9, 10, 11, 12, 13, 14, 15, 16],
-        "friday": [9, 10, 11, 12, 13, 14, 15, 16]
-      },
-      "max_hours_per_day": 8
-    },
-    {
-      "id": "R6",
-      "name": "Frank Miller",
-      "skills": ["testing", "qa"],
-      "availability": {
-        "monday": [10, 11, 12, 13, 14, 15, 16, 17],
-        "tuesday": [10, 11, 12, 13, 14, 15, 16, 17],
-        "wednesday": [10, 11, 12, 13, 14, 15, 16, 17],
-        "thursday": [10, 11, 12, 13, 14, 15, 16, 17],
-        "friday": [10, 11, 12, 13, 14, 15, 16, 17]
-      },
-      "max_hours_per_day": 8
-    },
-    {
-      "id": "R7",
-      "name": "Grace Lee",
-      "skills": ["testing", "qa", "documentation"],
-      "availability": {
-        "monday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "tuesday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "wednesday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "thursday": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-        "friday": [9, 10, 11, 12, 13, 14, 15, 16, 17]
-      },
-      "max_hours_per_day": 8
-    },
-    {
-      "id": "R8",
-      "name": "Henry Taylor",
-      "skills": ["documentation"],
-      "availability": {
-        "monday": [9, 10, 11, 12, 13, 14, 15, 16],
-        "tuesday": [9, 10, 11, 12, 13, 14, 15, 16],
-        "wednesday": [9, 10, 11, 12, 13, 14, 15, 16],
-        "thursday": [9, 10, 11, 12, 13, 14, 15, 16],
-        "friday": [9, 10, 11, 12, 13, 14, 15, 16]
-      },
-      "max_hours_per_day": 8
-    }
-  ],
-  "time_slots": {
-    "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
-    "hours": [9, 10, 11, 12, 13, 14, 15, 16, 17],
-    "working_hours_per_day": 8
-  },
-  "constraints": {
-    "hard_constraints": [
-      "no_resource_overlap",
-      "task_dependencies",
-      "resource_skills",
-      "resource_availability",
-      "max_hours_per_day"
+      {
+        "id": "T5",
+        "name": "Documentation",
+        "duration": 1,
+        "priority": "low",
+        "required_skills": ["documentation"],
+        "dependencies": [],
+        "preferred_resources": ["R5"]
+      }
     ],
-    "soft_constraints": [
-      "preferred_resources",
-      "task_priority",
-      "balanced_workload"
-    ]
+    "resources": [
+      {
+        "id": "R1",
+        "name": "Alice Johnson",
+        "skills": ["database", "backend"],
+        "availability": {
+          "monday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "tuesday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "wednesday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "thursday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "friday": [9, 10, 11, 12, 13, 14, 15, 16]
+        },
+        "max_hours_per_day": 8
+      },
+      {
+        "id": "R2",
+        "name": "Bob Smith",
+        "skills": ["database", "frontend"],
+        "availability": {
+          "monday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "tuesday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "wednesday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "thursday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "friday": [9, 10, 11, 12, 13, 14, 15, 16]
+        },
+        "max_hours_per_day": 8
+      },
+      {
+        "id": "R3",
+        "name": "Carol Davis",
+        "skills": ["frontend", "testing"],
+        "availability": {
+          "monday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "tuesday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "wednesday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "thursday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "friday": [9, 10, 11, 12, 13, 14, 15, 16]
+        },
+        "max_hours_per_day": 8
+      },
+      {
+        "id": "R4",
+        "name": "David Wilson",
+        "skills": ["backend", "testing"],
+        "availability": {
+          "monday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "tuesday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "wednesday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "thursday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "friday": [9, 10, 11, 12, 13, 14, 15, 16]
+        },
+        "max_hours_per_day": 8
+      },
+      {
+        "id": "R5",
+        "name": "Eva Brown",
+        "skills": ["documentation"],
+        "availability": {
+          "monday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "tuesday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "wednesday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "thursday": [9, 10, 11, 12, 13, 14, 15, 16],
+          "friday": [9, 10, 11, 12, 13, 14, 15, 16]
+        },
+        "max_hours_per_day": 8
+      }
+    ],
+    "time_slots": {
+      "days": ["monday", "tuesday", "wednesday", "thursday", "friday"],
+      "hours": [9, 10, 11, 12, 13, 14, 15, 16],
+      "working_hours_per_day": 8
+    },
+    "constraints": {
+      "hard_constraints": [
+        "no_resource_overlap",
+        "resource_skills",
+        "resource_availability"
+      ],
+      "soft_constraints": [
+        "preferred_resources",
+        "task_priority"
+      ]
+    }
   }
-} 
 }
