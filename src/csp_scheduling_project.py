@@ -44,7 +44,7 @@ from utils.visualization import (
     create_constraint_violation_chart, create_performance_comparison_chart,
     save_all_visualizations
 )
-from src.csp_solver import CSPSolver, CSPVariable, CSPConstraint, SchedulingCSP
+from src.csp_solver import SchedulingCSP
 
 # ---------------------------------------------------------------
 # STEP 1 [10 pts]: DATA LOADING AND VALIDATION

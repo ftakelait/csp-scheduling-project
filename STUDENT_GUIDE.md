@@ -29,13 +29,90 @@
 4. Wait for the setup to complete (downloads course repository and builds environment)
 
 ### 3. Start Working
+
+**Recommended method (works on all platforms):**
 ```bash
-# Start the development environment
+# Simple and reliable - works on Windows, Mac, and Linux
+docker run -it --rm \
+  -v ~/ai-course-work:/workspace/student_work \
+  -v ~/ai-course-data:/workspace/data \
+  -v ~/ai-course-output:/workspace/output \
+  -v ~/ai-course-projects:/workspace/projects \
+  mycourse-ai-course-dev
+```
+
+**Alternative methods:**
+```bash
+# Method 1: Use the provided start script
+chmod +x start-dev.sh
+./start-dev.sh
+
+# Method 2: Docker Compose (may have issues on Windows)
 docker-compose up ai-course-dev
 
-# Or start Jupyter Notebook
+# Method 3: Detached mode
+docker-compose up -d ai-course-dev
+docker-compose exec ai-course-dev /bin/bash
+
+# Method 4: Start Jupyter Notebook
 docker-compose up jupyter
 ```
+
+**What happens when you run `docker-compose up ai-course-dev`:**
+
+1. **Container starts** and shows "Setting up git configuration..."
+2. **Welcome message appears** with available assignments and commands
+3. **Interactive bash shell starts** - you'll see a prompt like: `student@ai-course:/workspace$`
+4. **You're now inside the container** and can start working!
+
+**Example of what you'll see:**
+```
+===============================================
+Welcome to the AI Course Development Environment
+===============================================
+
+Course Repository: https://github.com/ftakelait/csp-scheduling-project/
+
+Available assignments and projects:
+1. CSP Scheduling Project: /workspace/assignments/csp-scheduling-project/
+2. Your projects: /workspace/projects/
+3. Your work: /workspace/student_work/
+4. Tools: /workspace/tools/
+
+Quick start commands:
+- cd /workspace/assignments/csp-scheduling-project/
+- python src/csp_scheduling_project.py
+- python test_project.py
+- python gui/scheduler_gui.py
+
+Current directory: /workspace
+===============================================
+
+student@ai-course:/workspace$
+```
+
+### 4. Start Working on Assignments
+
+Once you see the `student@ai-course:/workspace$` prompt, you're ready to work! Here are your first steps:
+
+```bash
+# Navigate to the CSP assignment
+cd /workspace/assignments/csp-scheduling-project/
+
+# List what's available
+ls -la
+
+# Run the main assignment
+python src/csp_scheduling_project.py
+
+# Or run tests
+python test_project.py
+
+# Or start the GUI
+python gui/scheduler_gui.py
+```
+
+**Your work is automatically saved** in `~/ai-course-work/` on your computer!
 
 ## What's Included
 
@@ -147,6 +224,33 @@ docker-compose run --rm ai-course-dev /bin/bash
 ```
 
 ## Troubleshooting
+
+### Container Not Starting Properly
+If you see "Setting up git configuration..." and then nothing happens:
+```bash
+# Stop the container
+docker-compose down
+
+# Rebuild and start
+docker-compose build --no-cache
+docker-compose up ai-course-dev
+```
+
+### No Interactive Prompt
+If you see the welcome message but no `student@ai-course:/workspace$` prompt:
+```bash
+# Method 1: Use docker run (recommended for Windows)
+docker run -it --rm \
+  -v ~/ai-course-work:/workspace/student_work \
+  -v ~/ai-course-data:/workspace/data \
+  -v ~/ai-course-output:/workspace/output \
+  -v ~/ai-course-projects:/workspace/projects \
+  mycourse-ai-course-dev
+
+# Method 2: Use detached mode
+docker-compose up -d ai-course-dev
+docker-compose exec ai-course-dev /bin/bash
+```
 
 ### Docker Issues
 ```bash

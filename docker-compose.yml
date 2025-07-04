@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   ai-course-dev:
     build: .
@@ -23,7 +21,7 @@ services:
     working_dir: /workspace
     stdin_open: true
     tty: true
-    command: /workspace/dev.sh
+    # Use the default CMD from Dockerfile
 
   # Optional: Jupyter service for notebook development
   jupyter:

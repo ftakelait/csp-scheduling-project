@@ -46,6 +46,9 @@ RUN mkdir -p /workspace/projects \
     && mkdir -p /workspace/output \
     && mkdir -p /workspace/student_work
 
+# Create assignments directory before copying 
+RUN mkdir -p /workspace/assignments/csp-scheduling-project
+
 # Copy assignments from the cloned repo
 RUN cp -r /workspace/course-repo/* /workspace/assignments/csp-scheduling-project/
 
@@ -90,9 +93,38 @@ if [ ! -f ~/.gitconfig ]; then\n\
     git config --global user.email "student@university.edu"\n\
 fi\n\
 \n\
+# Show welcome message\n\
+echo "==============================================="\n\
+echo "Welcome to the AI Course Development Environment"\n\
+echo "==============================================="\n\
+echo ""\n\
+echo "Course Repository: https://github.com/ftakelait/csp-scheduling-project/"\n\
+echo ""\n\
+echo "Available assignments and projects:"\n\
+echo "1. CSP Scheduling Project: /workspace/assignments/csp-scheduling-project/"\n\
+echo "2. Your projects: /workspace/projects/"\n\
+echo "3. Your work: /workspace/student_work/"\n\
+echo "4. Tools: /workspace/tools/"\n\
+echo ""\n\
+echo "Quick start commands:"\n\
+echo "- cd /workspace/assignments/csp-scheduling-project/"\n\
+echo "- python src/csp_scheduling_project.py"\n\
+echo "- python test_project.py"\n\
+echo "- python gui/scheduler_gui.py"\n\
+echo ""\n\
+echo "Development tools:"\n\
+echo "- jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root"\n\
+echo "- python -m http.server 8000"  # For serving files\n\
+echo ""\n\
+echo "Current directory: $(pwd)"\n\
+echo "==============================================="\n\
+echo ""\n\
+\n\
 # Start bash with custom prompt\n\
 export PS1="\[\033[01;32m\]\u@ai-course\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "\n\
-exec bash\n\
+\n\
+# Keep the container running with interactive bash\n\
+/bin/bash -i\n\
 ' > /workspace/dev.sh && chmod +x /workspace/dev.sh
 
 # Create a project template
@@ -302,5 +334,47 @@ echo "2. Follow the assignment instructions"\n\
 echo "3. Your work will be saved in /workspace/student_work/"\n\
 ' > /workspace/tools/list_assignments && chmod +x /workspace/tools/list_assignments
 
+# Create a simple entrypoint script
+RUN echo '#!/bin/bash\n\
+# Simple entrypoint that shows welcome and starts bash\n\
+echo "==============================================="\n\
+echo "Welcome to the AI Course Development Environment"\n\
+echo "==============================================="\n\
+echo ""\n\
+echo "Course Repository: https://github.com/ftakelait/csp-scheduling-project/"\n\
+echo ""\n\
+echo "Available assignments and projects:"\n\
+echo "1. CSP Scheduling Project: /workspace/assignments/csp-scheduling-project/"\n\
+echo "2. Your projects: /workspace/projects/"\n\
+echo "3. Your work: /workspace/student_work/"\n\
+echo "4. Tools: /workspace/tools/"\n\
+echo ""\n\
+echo "Quick start commands:"\n\
+echo "- cd /workspace/assignments/csp-scheduling-project/"\n\
+echo "- python src/csp_scheduling_project.py"\n\
+echo "- python test_project.py"\n\
+echo "- python gui/scheduler_gui.py"\n\
+echo ""\n\
+echo "Current directory: $(pwd)"\n\
+echo "==============================================="\n\
+echo ""\n\
+\n\
+# Set up environment\n\
+export PYTHONPATH=/workspace:$PYTHONPATH\n\
+export PATH=/workspace/tools:$PATH\n\
+\n\
+# Set up git if not already configured\n\
+if [ ! -f ~/.gitconfig ]; then\n\
+    git config --global user.name "Student"\n\
+    git config --global user.email "student@university.edu"\n\
+fi\n\
+\n\
+# Set custom prompt\n\
+export PS1="\[\033[01;32m\]\u@ai-course\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ "\n\
+\n\
+# Start interactive bash\n\
+exec /bin/bash\n\
+' > /workspace/entrypoint.sh && chmod +x /workspace/entrypoint.sh
+
 # Set default command
-CMD ["/workspace/welcome.sh"] 
+CMD ["/workspace/entrypoint.sh"] 

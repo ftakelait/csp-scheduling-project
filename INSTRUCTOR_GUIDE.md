@@ -6,10 +6,11 @@ This setup allows you to share only the Docker files with students, who can then
 
 ## What Students Need
 
-Share these 4 files with your students:
+Share these 5 files with your students:
 - `Dockerfile` - Builds the complete environment
 - `docker-compose.yml` - Orchestrates the services
 - `setup.sh` - One-time setup script
+- `start-simple.sh` - Simple startup script (recommended)
 - `STUDENT_GUIDE.md` - Complete instructions for students
 
 ## How It Works
