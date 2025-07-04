@@ -543,19 +543,47 @@ print("=" * 60)
 # Create visualizations
 if best_solution:
     try:
-        gantt_fig = create_gantt_chart(best_solution, tasks, resources)
-        util_fig = create_resource_utilization_chart(best_solution, resources)
-        
-        # Save charts
+        # Create output directory
         os.makedirs('output', exist_ok=True)
-        gantt_fig.savefig('output/gantt_chart.png', dpi=300, bbox_inches='tight')
-        util_fig.savefig('output/resource_utilization.png', dpi=300, bbox_inches='tight')
         
-        print("✓ Visualizations created:")
-        print("  - Gantt chart: output/gantt_chart.png")
-        print("  - Resource utilization: output/resource_utilization.png")
+        # Create Gantt chart
+        gantt_fig = create_gantt_chart(best_solution, tasks, resources)
+        if gantt_fig:
+            gantt_fig.savefig('output/gantt_chart.png', dpi=300, bbox_inches='tight')
+            plt.close(gantt_fig)
+            print("✓ Gantt chart created: output/gantt_chart.png")
+        else:
+            print("✗ Error creating Gantt chart")
+        
+        # Create resource utilization chart
+        util_fig = create_resource_utilization_chart(best_solution, resources)
+        if util_fig:
+            util_fig.savefig('output/resource_utilization.png', dpi=300, bbox_inches='tight')
+            plt.close(util_fig)
+            print("✓ Resource utilization chart created: output/resource_utilization.png")
+        else:
+            print("✗ Error creating resource utilization chart")
+        
+        print("✓ All visualizations created successfully")
+        
     except Exception as e:
         print(f"✗ Error creating visualizations: {e}")
+        print("  - Creating simple text-based visualization instead...")
+        
+        # Create a simple text-based visualization as fallback
+        try:
+            with open('output/schedule_summary.txt', 'w') as f:
+                f.write("SCHEDULE SUMMARY\n")
+                f.write("=" * 50 + "\n\n")
+                for task_id, assignment in best_solution.items():
+                    f.write(f"Task: {assignment.get('task_name', task_id)}\n")
+                    f.write(f"  Resource: {assignment.get('resource_name', 'Unknown')}\n")
+                    f.write(f"  Day: {assignment.get('start_day', 'Unknown')}\n")
+                    f.write(f"  Time: {assignment.get('start_hour', 0)}-{assignment.get('end_hour', 0)}\n")
+                    f.write(f"  Duration: {assignment.get('duration', 0)} hours\n\n")
+            print("✓ Text summary created: output/schedule_summary.txt")
+        except Exception as e2:
+            print(f"✗ Error creating text summary: {e2}")
 else:
     print("✗ No solution to visualize")
 

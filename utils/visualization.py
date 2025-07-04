@@ -73,7 +73,7 @@ def create_gantt_chart(solution: Dict[str, Any], tasks: List[Dict],
     ax.set_title('Project Schedule Gantt Chart')
     
     # Set x-axis ticks
-    ax.set_xticks([i * 8 for i in range(6)])
+    ax.set_xticks([i * 8 for i in range(5)])  # 5 days, not 6
     ax.set_xticklabels(days)
     
     # Set y-axis ticks
