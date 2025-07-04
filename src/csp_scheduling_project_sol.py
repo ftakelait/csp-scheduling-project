@@ -82,7 +82,6 @@ else:
 
 # Extract the main components from the loaded data
 schedule_data = data['schedule']
-constraints_data = data['constraints']
 
 tasks = schedule_data['tasks']
 resources = schedule_data['resources']
