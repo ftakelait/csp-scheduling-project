@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  ai-course-dev:
+    build: .
+    container_name: ai-course-development
+    ports:
+      - "8888:8888"  # Jupyter Notebook
+      - "8000:8000"  # HTTP Server
+      - "5000:5000"  # Flask/Web apps
+    volumes:
+      # Mount current directory to assignments
+      - .:/workspace/assignments/csp-scheduling-project
+      # Mount a persistent data directory
+      - ./student_data:/workspace/data
+      # Mount output directory for generated files
+      - ./output:/workspace/output
+      # Mount projects directory for student projects
+      - ./student_projects:/workspace/projects
+    environment:
+      - PYTHONPATH=/workspace
+      - PYTHONUNBUFFERED=1
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    command: /workspace/dev.sh
+
+  # Optional: Jupyter service for notebook development
+  jupyter:
+    build: .
+    container_name: ai-course-jupyter
+    ports:
+      - "8889:8888"  # Different port to avoid conflicts
+    volumes:
+      - .:/workspace/assignments/csp-scheduling-project
+      - ./student_data:/workspace/data
+      - ./output:/workspace/output
+      - ./student_projects:/workspace/projects
+    environment:
+      - PYTHONPATH=/workspace
+      - PYTHONUNBUFFERED=1
+    working_dir: /workspace
+    command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='' --NotebookApp.password=''
+
+  # Optional: Grading service
+  grader:
+    build: .
+    container_name: ai-course-grader
+    volumes:
+      - .:/workspace/assignments/csp-scheduling-project
+      - ./student_submissions:/workspace/student_submissions
+      - ./grading_reports:/workspace/grading_reports
+    environment:
+      - PYTHONPATH=/workspace
+    working_dir: /workspace/assignments/csp-scheduling-project
+    command: /bin/bash 
